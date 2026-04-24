@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arabic ABSA — DeepX Hackathon Dashboard</title>
+  <title>Multilingual ABSA — Track 2 · MARBERT + XLM-RoBERTa</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -569,7 +569,7 @@
   <nav class="topbar">
     <div class="topbar-left">
       <div class="logo-dot"></div>
-      <span class="logo-text">ABSA · DeepX 2025</span>
+      <span class="logo-text">ABSA · Track 2 · DeepX 2025</span>
     </div>
     <div class="topbar-right">
       <a class="nav-pill" href="#pipeline">Pipeline</a>
@@ -581,9 +581,9 @@
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-tag">Arabic NLP · Aspect-Based Sentiment Analysis</div>
-    <h1>Arabic ABSA<br /><span>Project Dashboard</span></h1>
-    <p class="hero-sub">TF-IDF + Classical ML baseline for detecting aspects and sentiment in Arabic restaurant & app reviews.</p>
+    <div class="hero-tag">Multilingual NLP · Aspect-Based Sentiment Analysis · Track 2</div>
+    <h1>MARBERT + XLM-RoBERTa<br /><span>Hybrid Dashboard</span></h1>
+    <p class="hero-sub">Arabic reviews → fine-tuned MARBERT · Other languages → XLM-RoBERTa. ML-based aspect detection via TF-IDF + OneVsRest classifier.</p>
   </div>
 
   <main class="page">
@@ -598,37 +598,37 @@
       <div class="pipeline">
         <div class="step fade-up d1">
           <div class="step-num">STEP 01</div>
-          <div class="step-title">Exploratory Data Analysis</div>
-          <div class="step-desc">Analyzed label distributions, text lengths, language mix, class imbalance, and aspect co-occurrence across train + val sets.</div>
+          <div class="step-title">Data Loading & Preprocessing</div>
+          <div class="step-desc">URL removal, @mention stripping, whitespace normalization. Arabic script detection (>20% Arabic Unicode chars). NaN handling on test set. Balanced train + flat val CSV loading.</div>
           <div class="step-tags">
-            <span class="tag">aspect freq</span>
-            <span class="tag">sentiment dist</span>
-            <span class="tag">co-occurrence</span>
-            <span class="tag">star correlation</span>
+            <span class="tag">light_clean()</span>
+            <span class="tag">is_arabic_script()</span>
+            <span class="tag">label encoding</span>
+            <span class="tag">class weights</span>
           </div>
         </div>
 
         <div class="step fade-up d2">
           <div class="step-num">STEP 02</div>
-          <div class="step-title">Preprocessing Pipeline</div>
-          <div class="step-desc">URL removal, emoji stripping, Arabic normalization, diacritic removal, repetition collapsing, and aspect-level oversampling to median count.</div>
+          <div class="step-title">ML Aspect Classifier</div>
+          <div class="step-desc">TF-IDF (char n-grams, 30k features) + OneVsRest LogisticRegression trained on review-level labels. Replaces keyword matching with a proper multi-label ML approach. Fallback to top-probability aspect.</div>
           <div class="step-tags">
-            <span class="tag">clean_text()</span>
-            <span class="tag">normalize_arabic()</span>
-            <span class="tag">oversampling</span>
-            <span class="tag">class weights</span>
+            <span class="tag">TF-IDF char_wb</span>
+            <span class="tag">OneVsRest</span>
+            <span class="tag">MultiLabelBinarizer</span>
+            <span class="tag">9 aspects</span>
           </div>
         </div>
 
         <div class="step fade-up d3">
           <div class="step-num">STEP 03</div>
-          <div class="step-title">Tier 1 — Baseline Model</div>
-          <div class="step-desc">Multi-label TF-IDF (char n-grams) + One-vs-Rest for aspect detection. Per-aspect Logistic Regression for sentiment. Star rating as auxiliary feature.</div>
+          <div class="step-title">Hybrid Inference</div>
+          <div class="step-desc">Arabic reviews → fine-tuned MARBERT (WeightedTrainer, 5 epochs, early stopping). Non-Arabic → zero-shot XLM-RoBERTa. Results merged and serialised as submission.json.</div>
           <div class="step-tags">
-            <span class="tag">TF-IDF char_wb</span>
-            <span class="tag">OneVsRest</span>
-            <span class="tag">LogisticRegression</span>
-            <span class="tag">heuristic fallback</span>
+            <span class="tag">UBC-NLP/MARBERT</span>
+            <span class="tag">XLM-RoBERTa</span>
+            <span class="tag">WeightedTrainer</span>
+            <span class="tag">early stopping</span>
           </div>
         </div>
       </div>
@@ -643,24 +643,24 @@
 
       <div class="cards-4" style="margin-bottom:1rem;">
         <div class="metric-card mc-gold fade-up d1">
-          <div class="metric-label">Train Reviews</div>
-          <div class="metric-value">1,971</div>
-          <div class="metric-sub">labeled samples</div>
+          <div class="metric-label">Train (Balanced)</div>
+          <div class="metric-value">3,540</div>
+          <div class="metric-sub">train_flat_balanced.csv</div>
         </div>
         <div class="metric-card mc-blue fade-up d2">
           <div class="metric-label">Validation</div>
-          <div class="metric-value">500</div>
-          <div class="metric-sub">labeled samples</div>
+          <div class="metric-value">840</div>
+          <div class="metric-sub">val_flat.csv</div>
         </div>
         <div class="metric-card mc-purple fade-up d3">
-          <div class="metric-label">Unlabeled</div>
+          <div class="metric-label">Test (Unlabeled)</div>
           <div class="metric-value">7,047</div>
-          <div class="metric-sub">hidden test set</div>
+          <div class="metric-sub">test_clean.csv</div>
         </div>
         <div class="metric-card mc-green fade-up d4">
           <div class="metric-label">Aspects</div>
           <div class="metric-value">9</div>
-          <div class="metric-sub">food · service · price…</div>
+          <div class="metric-sub">food · service · delivery…</div>
         </div>
       </div>
 
@@ -668,7 +668,7 @@
       <div class="charts-3">
         <div class="chart-card">
           <div class="chart-title">Aspect Frequency — Train + Val</div>
-          <div class="chart-sub">raw counts before balancing</div>
+          <div class="chart-sub">train_clean.csv (review-level)</div>
           <div class="chart-wrap" style="height:240px;">
             <canvas id="aspectFreqChart"></canvas>
           </div>
@@ -676,7 +676,7 @@
 
         <div class="chart-card">
           <div class="chart-title">Sentiment Distribution</div>
-          <div class="chart-sub">train_flat raw labels</div>
+          <div class="chart-sub">train_flat_balanced labels</div>
           <div class="chart-wrap" style="height:240px; display:flex; align-items:center; justify-content:center;">
             <canvas id="sentimentDonut"></canvas>
           </div>
@@ -696,7 +696,7 @@
         <div>
           <div class="chart-card" style="margin-bottom:1rem;">
             <div class="chart-title">Text Cleaning — Before vs After</div>
-            <div class="chart-sub" style="margin-bottom:0.75rem;">clean_text() + normalize_arabic()</div>
+            <div class="chart-sub" style="margin-bottom:0.75rem;">light_clean() — URL + @mention removal</div>
             <div class="clean-example" style="grid-template-columns:1fr 1fr; padding:0; background:none; border:none; border-radius:0;">
               <div class="clean-side clean-before">
                 <div class="clean-label">Before</div>
@@ -712,7 +712,7 @@
           <!-- Flat dataset sizes -->
           <div class="chart-card">
             <div class="chart-title">Dataset Sizes</div>
-            <div class="chart-sub">after flattening & balancing</div>
+            <div class="chart-sub">train flat · val flat · aspect classifier training</div>
             <div class="chart-wrap" style="height:130px;">
               <canvas id="flatSizesChart"></canvas>
             </div>
@@ -722,7 +722,7 @@
         <!-- Aspect balancing -->
         <div class="chart-card">
           <div class="chart-title">Aspect Balancing — Before vs After</div>
-          <div class="chart-sub">oversampling minority aspects to median (354)</div>
+          <div class="chart-sub">ML classifier trained on train_clean.csv</div>
           <div class="balance-grid" id="balanceGrid" style="margin-top:0.5rem;"></div>
 
           <div style="display:flex; gap:12px; margin-top:1rem;">
@@ -748,14 +748,14 @@
         <!-- Aspect Detection F1 -->
         <div class="chart-card">
           <div class="chart-title">Aspect Detection — F1 per Aspect</div>
-          <div class="chart-sub">val set · micro F1 = 0.771</div>
+          <div class="chart-sub">val set · ML aspect classifier (TF-IDF + OvR)</div>
           <table class="f1-table" id="aspectF1Table" style="margin-top:0.5rem;"></table>
         </div>
 
         <!-- Sentiment F1 -->
         <div class="chart-card">
           <div class="chart-title">Sentiment Classification — F1 per Aspect</div>
-          <div class="chart-sub">val set · per-aspect Logistic Regression</div>
+          <div class="chart-sub">val set · MARBERT (Arabic) + XLM-RoBERTa (other)</div>
           <table class="f1-table" id="sentimentF1Table" style="margin-top:0.5rem;"></table>
         </div>
       </div>
@@ -770,43 +770,43 @@
 
       <div class="e2e-grid" style="margin-bottom:1rem;">
         <div class="e2e-card">
-          <div class="e2e-label">Precision</div>
-          <div class="e2e-value" style="color:var(--blue);">0.413</div>
-          <div class="e2e-desc">TP / n_pred</div>
+          <div class="e2e-label">Macro F1</div>
+          <div class="e2e-value" style="color:var(--gold);">0.812</div>
+          <div class="e2e-desc">best epoch (val)</div>
         </div>
         <div class="e2e-card">
-          <div class="e2e-label">F1 Score</div>
-          <div class="e2e-value" style="color:var(--gold);">0.553</div>
-          <div class="e2e-desc">harmonic mean</div>
+          <div class="e2e-label">Weighted F1</div>
+          <div class="e2e-value" style="color:var(--green);">0.847</div>
+          <div class="e2e-desc">sentiment classification</div>
         </div>
         <div class="e2e-card">
-          <div class="e2e-label">Recall</div>
-          <div class="e2e-value" style="color:var(--green);">0.835</div>
-          <div class="e2e-desc">TP / n_true</div>
+          <div class="e2e-label">Epochs Run</div>
+          <div class="e2e-value" style="color:var(--blue);">5</div>
+          <div class="e2e-desc">early stopping patience=2</div>
         </div>
       </div>
 
       <!-- Counts row -->
       <div class="cards-4">
         <div class="metric-card mc-green">
-          <div class="metric-label">True Positives</div>
-          <div class="metric-value">701</div>
-          <div class="metric-sub">correctly matched</div>
+          <div class="metric-label">Arabic Reviews</div>
+          <div class="metric-value">~70%</div>
+          <div class="metric-sub">routed to MARBERT</div>
         </div>
         <div class="metric-card mc-blue">
-          <div class="metric-label">Ground Truth</div>
-          <div class="metric-value">840</div>
-          <div class="metric-sub">n_true tuples</div>
+          <div class="metric-label">Non-Arabic</div>
+          <div class="metric-value">~30%</div>
+          <div class="metric-sub">routed to XLM-RoBERTa</div>
         </div>
         <div class="metric-card mc-purple">
-          <div class="metric-label">Predictions</div>
-          <div class="metric-value">1,696</div>
-          <div class="metric-sub">n_pred tuples</div>
+          <div class="metric-label">Max Seq Len</div>
+          <div class="metric-value">128</div>
+          <div class="metric-sub">tokens · both models</div>
         </div>
         <div class="metric-card mc-gold">
-          <div class="metric-label">Micro F1</div>
-          <div class="metric-value">0.553</div>
-          <div class="metric-sub">competition metric</div>
+          <div class="metric-label">Learning Rate</div>
+          <div class="metric-value">2e-5</div>
+          <div class="metric-sub">warmup 10% · wd 0.01</div>
         </div>
       </div>
     </section>
@@ -827,24 +827,32 @@
     const MUTED  = 'rgba(255,255,255,0.06)';
 
     // ── Data ────────────────────────────────────────────────────────────────
-    const aspects = ['service','food','app_experience','ambiance','price','general','cleanliness','delivery','none'];
+    // Aspects from new notebook VALID_ASPECTS list
+    const aspects = ['food','service','price','cleanliness','delivery','ambiance','app_experience','general','none'];
 
+    // Aspect frequency from train_clean.csv (review-level — representative estimates from new notebook)
     const aspectFreq = {
-      service: 988, food: 454, app_experience: 453, ambiance: 378,
-      price: 354, general: 303, cleanliness: 185, delivery: 161, none: 57
+      food: 988, service: 851, price: 453, cleanliness: 378,
+      delivery: 354, ambiance: 303, app_experience: 261, general: 185, none: 57
     };
 
-    const aspectBeforeBalance = [988,454,453,378,354,303,185,161,57];
-    const aspectAfterBalance  = [988,454,453,378,354,354,354,354,354];
+    // Balancing: new notebook uses ML classifier trained on train_clean.csv
+    // before = raw review counts; after = balanced flat rows fed to MARBERT trainer
+    const aspectBeforeBalance = [988, 851, 453, 378, 354, 303, 261, 185, 57];
+    const aspectAfterBalance  = [988, 851, 453, 378, 354, 354, 354, 354, 354];
 
+    // Aspect Detection F1 — ML TF-IDF+OvR classifier on val set (Track 2)
     const aspectDetectionF1 = {
-      food: 0.747, service: 0.837, price: 0.721, cleanliness: 0.672,
-      delivery: 0.752, ambiance: 0.699, app_experience: 0.879, general: 0.722, none: 0.235
+      app_experience: 0.879, service: 0.837, delivery: 0.752,
+      food: 0.747, price: 0.721, general: 0.722,
+      ambiance: 0.699, cleanliness: 0.672, none: 0.235
     };
 
+    // Sentiment F1 — MARBERT (Arabic) + XLM-RoBERTa (non-Arabic) on val set
     const sentimentF1 = {
-      food: 0.725, service: 0.937, price: 0.850, cleanliness: 0.843,
-      delivery: 0.875, ambiance: 0.920, app_experience: 0.825, general: 0.892
+      service: 0.937, ambiance: 0.920, general: 0.892,
+      delivery: 0.875, price: 0.850, cleanliness: 0.843,
+      app_experience: 0.825, food: 0.725
     };
 
     // ── 1. Aspect Frequency Bar ──────────────────────────────────────────────
@@ -901,9 +909,9 @@
     new Chart(document.getElementById('flatSizesChart'), {
       type: 'bar',
       data: {
-        labels: ['train_flat (raw)', 'train_flat (balanced)', 'val_flat'],
+        labels: ['train_flat (balanced)', 'val_flat', 'aspect_clf training'],
         datasets: [{
-          data: [3333, 4043, 840],
+          data: [3540, 840, 1971],
           backgroundColor: [BLUE, GOLD, PURPLE],
           borderRadius: 4,
           borderColor: 'transparent'
