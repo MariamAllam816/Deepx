@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arabic ABSA — DeepX Hackathon Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ── Tokens ── */
+    :root {
+      --bg:        #080a0f;
+      --bg1:       #0e1118;
+      --bg2:       #141820;
+      --bg3:       #1a2030;
+      --border:    rgba(255,255,255,0.06);
+      --border2:   rgba(255,255,255,0.12);
+      --text:      #e8e4dc;
+      --muted:     #7a7870;
+      --dim:       #3a3830;
+      --gold:      #e6b14a;
+      --gold-d:    rgba(230,177,74,0.15);
+      --gold-glow: rgba(230,177,74,0.08);
+      --green:     #4ade80;
+      --green-d:   rgba(74,222,128,0.1);
+      --red:       #f87171;
+      --red-d:     rgba(248,113,113,0.1);
+      --blue:      #60a5fa;
+      --blue-d:    rgba(96,165,250,0.1);
+      --purple:    #a78bfa;
+      --purple-d:  rgba(167,139,250,0.1);
+      --r:         10px;
+      --r2:        16px;
+      --mono:      'IBM Plex Mono', monospace;
+      --sans:      'Sora', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 5rem;
+      line-height: 1.6;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 2.5s ease infinite;
+    }
+
+    .logo-text {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-pill {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .nav-pill:hover { color: var(--text); }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4rem 2rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(230,177,74,0.25);
+      background: var(--gold-glow);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 span { color: var(--gold); }
+
+    .hero-sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 300;
+      max-width: 560px;
+    }
+
+    /* ── Main layout ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ── Section titles ── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    section { margin-bottom: 3rem; }
+
+    /* ── Pipeline steps ── */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+
+    .step {
+      background: var(--bg1);
+      padding: 1.5rem 1.25rem;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .step:hover { background: var(--bg2); }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-num::after {
+      content: '';
+      display: inline-block;
+      height: 1px;
+      width: 24px;
+      background: var(--gold);
+      opacity: 0.4;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .step-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 0.85rem;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--bg3);
+      color: var(--muted);
+      border: 1px solid var(--border2);
+    }
+
+    /* ── Cards grid ── */
+    .cards-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .metric-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .metric-card:hover { border-color: var(--border2); }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .mc-gold::before  { background: var(--gold); }
+    .mc-green::before { background: var(--green); }
+    .mc-red::before   { background: var(--red); }
+    .mc-blue::before  { background: var(--blue); }
+    .mc-purple::before{ background: var(--purple); }
+
+    .metric-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1;
+      font-family: var(--mono);
+    }
+
+    .mc-gold  .metric-value { color: var(--gold); }
+    .mc-green .metric-value { color: var(--green); }
+    .mc-red   .metric-value { color: var(--red); }
+    .mc-blue  .metric-value { color: var(--blue); }
+    .mc-purple .metric-value { color: var(--purple); }
+
+    .metric-sub {
+      font-size: 0.72rem;
+      color: var(--dim);
+      margin-top: 0.3rem;
+      font-family: var(--mono);
+    }
+
+    /* ── Charts 2-col ── */
+    .charts-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .charts-3 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+    }
+
+    .chart-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 1.25rem;
+    }
+
+    .chart-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .chart-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      font-family: var(--mono);
+    }
+
+    .chart-wrap {
+      position: relative;
+    }
+
+    /* ── F1 table ── */
+    .f1-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .f1-table th {
+      font-size: 0.68rem;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-align: left;
+      padding: 0 0 0.5rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .f1-table th:last-child { text-align: right; }
+
+    .f1-table td {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      vertical-align: middle;
+    }
+
+    .f1-table tr:last-child td { border-bottom: none; }
+
+    .f1-table td:last-child {
+      text-align: right;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+    }
+
+    .aspect-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--bg3);
+      color: var(--muted);
+      margin-right: 6px;
+    }
+
+    .f1-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .f1-bar-bg {
+      flex: 1;
+      height: 4px;
+      background: var(--bg3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .f1-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--gold);
+      transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .f1-val {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    .f1-val.high   { color: var(--green); }
+    .f1-val.medium { color: var(--gold); }
+    .f1-val.low    { color: var(--red); }
+
+    /* ── End-to-End metrics ── */
+    .e2e-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .e2e-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .e2e-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: var(--mono);
+      margin-bottom: 0.4rem;
+    }
+
+    .e2e-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      font-family: var(--mono);
+      line-height: 1;
+    }
+
+    .e2e-desc {
+      font-size: 0.7rem;
+      color: var(--dim);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Cleaning example ── */
+    .clean-example {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.25rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .clean-side {
+      padding: 0.85rem 1rem;
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      direction: rtl;
+    }
+
+    .clean-before {
+      background: var(--red-d);
+      border: 1px solid rgba(248,113,113,0.15);
+      color: var(--red);
+    }
+
+    .clean-after {
+      background: var(--green-d);
+      border: 1px solid rgba(74,222,128,0.15);
+      color: var(--green);
+    }
+
+    .clean-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+      opacity: 0.6;
+      direction: ltr;
+    }
+
+    /* ── Balancing viz ── */
+    .balance-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .balance-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 1fr;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.78rem;
+    }
+
+    .balance-aspect {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .balance-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .balance-bar {
+      height: 5px;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    .bar-before { background: rgba(96,165,250,0.4); }
+    .bar-after  { background: var(--gold); }
+
+    .balance-nums {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--dim);
+    }
+
+    /* ── Animations ── */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: none; }
+    }
+
+    .fade-up { animation: fadeUp 0.5s ease both; }
+    .d1 { animation-delay: 0.05s; }
+    .d2 { animation-delay: 0.10s; }
+    .d3 { animation-delay: 0.15s; }
+    .d4 { animation-delay: 0.20s; }
+
+    /* ── Responsive ── */
+    @media (max-width: 780px) {
+      .pipeline { grid-template-columns: 1fr; }
+      .cards-4  { grid-template-columns: 1fr 1fr; }
+      .charts-2 { grid-template-columns: 1fr; }
+      .charts-3 { grid-template-columns: 1fr; }
+      .e2e-grid { grid-template-columns: 1fr; }
+      .clean-example { grid-template-columns: 1fr; }
+      h1 { font-size: 1.6rem; }
+    }
+
+    @media (max-width: 480px) {
+      .cards-4 { grid-template-columns: 1fr; }
+      .topbar-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <nav class="topbar">
+    <div class="topbar-left">
+      <div class="logo-dot"></div>
+      <span class="logo-text">ABSA · DeepX 2025</span>
+    </div>
+    <div class="topbar-right">
+      <a class="nav-pill" href="#pipeline">Pipeline</a>
+      <a class="nav-pill" href="#data">Data</a>
+      <a class="nav-pill" href="#model">Model</a>
+      <a class="nav-pill" href="#results">Results</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-tag">Arabic NLP · Aspect-Based Sentiment Analysis</div>
+    <h1>Arabic ABSA<br /><span>Project Dashboard</span></h1>
+    <p class="hero-sub">TF-IDF + Classical ML baseline for detecting aspects and sentiment in Arabic restaurant & app reviews.</p>
+  </div>
+
+  <main class="page">
+
+    <!-- ── Pipeline ── -->
+    <section id="pipeline">
+      <div class="section-head">
+        <span class="section-label">// 01 · Pipeline</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="pipeline">
+        <div class="step fade-up d1">
+          <div class="step-num">STEP 01</div>
+          <div class="step-title">Exploratory Data Analysis</div>
+          <div class="step-desc">Analyzed label distributions, text lengths, language mix, class imbalance, and aspect co-occurrence across train + val sets.</div>
+          <div class="step-tags">
+            <span class="tag">aspect freq</span>
+            <span class="tag">sentiment dist</span>
+            <span class="tag">co-occurrence</span>
+            <span class="tag">star correlation</span>
+          </div>
+        </div>
+
+        <div class="step fade-up d2">
+          <div class="step-num">STEP 02</div>
+          <div class="step-title">Preprocessing Pipeline</div>
+          <div class="step-desc">URL removal, emoji stripping, Arabic normalization, diacritic removal, repetition collapsing, and aspect-level oversampling to median count.</div>
+          <div class="step-tags">
+            <span class="tag">clean_text()</span>
+            <span class="tag">normalize_arabic()</span>
+            <span class="tag">oversampling</span>
+            <span class="tag">class weights</span>
+          </div>
+        </div>
+
+        <div class="step fade-up d3">
+          <div class="step-num">STEP 03</div>
+          <div class="step-title">Tier 1 — Baseline Model</div>
+          <div class="step-desc">Multi-label TF-IDF (char n-grams) + One-vs-Rest for aspect detection. Per-aspect Logistic Regression for sentiment. Star rating as auxiliary feature.</div>
+          <div class="step-tags">
+            <span class="tag">TF-IDF char_wb</span>
+            <span class="tag">OneVsRest</span>
+            <span class="tag">LogisticRegression</span>
+            <span class="tag">heuristic fallback</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Dataset Overview ── -->
+    <section id="data">
+      <div class="section-head">
+        <span class="section-label">// 02 · Dataset</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="cards-4" style="margin-bottom:1rem;">
+        <div class="metric-card mc-gold fade-up d1">
+          <div class="metric-label">Train Reviews</div>
+          <div class="metric-value">1,971</div>
+          <div class="metric-sub">labeled samples</div>
+        </div>
+        <div class="metric-card mc-blue fade-up d2">
+          <div class="metric-label">Validation</div>
+          <div class="metric-value">500</div>
+          <div class="metric-sub">labeled samples</div>
+        </div>
+        <div class="metric-card mc-purple fade-up d3">
+          <div class="metric-label">Unlabeled</div>
+          <div class="metric-value">7,047</div>
+          <div class="metric-sub">hidden test set</div>
+        </div>
+        <div class="metric-card mc-green fade-up d4">
+          <div class="metric-label">Aspects</div>
+          <div class="metric-value">9</div>
+          <div class="metric-sub">food · service · price…</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-3">
+        <div class="chart-card">
+          <div class="chart-title">Aspect Frequency — Train + Val</div>
+          <div class="chart-sub">raw counts before balancing</div>
+          <div class="chart-wrap" style="height:240px;">
+            <canvas id="aspectFreqChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">Sentiment Distribution</div>
+          <div class="chart-sub">train_flat raw labels</div>
+          <div class="chart-wrap" style="height:240px; display:flex; align-items:center; justify-content:center;">
+            <canvas id="sentimentDonut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Preprocessing ── -->
+    <section id="preprocessing">
+      <div class="section-head">
+        <span class="section-label">// 03 · Preprocessing Results</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="charts-2" style="margin-bottom:1rem;">
+        <!-- Text cleaning example -->
+        <div>
+          <div class="chart-card" style="margin-bottom:1rem;">
+            <div class="chart-title">Text Cleaning — Before vs After</div>
+            <div class="chart-sub" style="margin-bottom:0.75rem;">clean_text() + normalize_arabic()</div>
+            <div class="clean-example" style="grid-template-columns:1fr 1fr; padding:0; background:none; border:none; border-radius:0;">
+              <div class="clean-side clean-before">
+                <div class="clean-label">Before</div>
+                المكاننننن رائعةةةةةة جداااا ❤️❤️❤️ https://example.com
+              </div>
+              <div class="clean-side clean-after">
+                <div class="clean-label">After</div>
+                المكان رايعة جدا
+              </div>
+            </div>
+          </div>
+
+          <!-- Flat dataset sizes -->
+          <div class="chart-card">
+            <div class="chart-title">Dataset Sizes</div>
+            <div class="chart-sub">after flattening & balancing</div>
+            <div class="chart-wrap" style="height:130px;">
+              <canvas id="flatSizesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aspect balancing -->
+        <div class="chart-card">
+          <div class="chart-title">Aspect Balancing — Before vs After</div>
+          <div class="chart-sub">oversampling minority aspects to median (354)</div>
+          <div class="balance-grid" id="balanceGrid" style="margin-top:0.5rem;"></div>
+
+          <div style="display:flex; gap:12px; margin-top:1rem;">
+            <div style="display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--muted); font-family:var(--mono);">
+              <div style="width:14px; height:5px; background:rgba(96,165,250,0.4); border-radius:2px;"></div> Before
+            </div>
+            <div style="display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--muted); font-family:var(--mono);">
+              <div style="width:14px; height:5px; background:var(--gold); border-radius:2px;"></div> After
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Model Results ── -->
+    <section id="model">
+      <div class="section-head">
+        <span class="section-label">// 04 · Model Performance</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="charts-2" style="margin-bottom:1rem;">
+        <!-- Aspect Detection F1 -->
+        <div class="chart-card">
+          <div class="chart-title">Aspect Detection — F1 per Aspect</div>
+          <div class="chart-sub">val set · micro F1 = 0.771</div>
+          <table class="f1-table" id="aspectF1Table" style="margin-top:0.5rem;"></table>
+        </div>
+
+        <!-- Sentiment F1 -->
+        <div class="chart-card">
+          <div class="chart-title">Sentiment Classification — F1 per Aspect</div>
+          <div class="chart-sub">val set · per-aspect Logistic Regression</div>
+          <table class="f1-table" id="sentimentF1Table" style="margin-top:0.5rem;"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── End-to-End ── -->
+    <section id="results">
+      <div class="section-head">
+        <span class="section-label">// 05 · End-to-End Evaluation</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="e2e-grid" style="margin-bottom:1rem;">
+        <div class="e2e-card">
+          <div class="e2e-label">Precision</div>
+          <div class="e2e-value" style="color:var(--blue);">0.413</div>
+          <div class="e2e-desc">TP / n_pred</div>
+        </div>
+        <div class="e2e-card">
+          <div class="e2e-label">F1 Score</div>
+          <div class="e2e-value" style="color:var(--gold);">0.553</div>
+          <div class="e2e-desc">harmonic mean</div>
+        </div>
+        <div class="e2e-card">
+          <div class="e2e-label">Recall</div>
+          <div class="e2e-value" style="color:var(--green);">0.835</div>
+          <div class="e2e-desc">TP / n_true</div>
+        </div>
+      </div>
+
+      <!-- Counts row -->
+      <div class="cards-4">
+        <div class="metric-card mc-green">
+          <div class="metric-label">True Positives</div>
+          <div class="metric-value">701</div>
+          <div class="metric-sub">correctly matched</div>
+        </div>
+        <div class="metric-card mc-blue">
+          <div class="metric-label">Ground Truth</div>
+          <div class="metric-value">840</div>
+          <div class="metric-sub">n_true tuples</div>
+        </div>
+        <div class="metric-card mc-purple">
+          <div class="metric-label">Predictions</div>
+          <div class="metric-value">1,696</div>
+          <div class="metric-sub">n_pred tuples</div>
+        </div>
+        <div class="metric-card mc-gold">
+          <div class="metric-label">Micro F1</div>
+          <div class="metric-value">0.553</div>
+          <div class="metric-sub">competition metric</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── Shared chart defaults ────────────────────────────────────────────────
+    Chart.defaults.color = '#7a7870';
+    Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+    Chart.defaults.font.size = 11;
+
+    const GOLD   = '#e6b14a';
+    const BLUE   = '#60a5fa';
+    const GREEN  = '#4ade80';
+    const RED    = '#f87171';
+    const PURPLE = '#a78bfa';
+    const MUTED  = 'rgba(255,255,255,0.06)';
+
+    // ── Data ────────────────────────────────────────────────────────────────
+    const aspects = ['service','food','app_experience','ambiance','price','general','cleanliness','delivery','none'];
+
+    const aspectFreq = {
+      service: 988, food: 454, app_experience: 453, ambiance: 378,
+      price: 354, general: 303, cleanliness: 185, delivery: 161, none: 57
+    };
+
+    const aspectBeforeBalance = [988,454,453,378,354,303,185,161,57];
+    const aspectAfterBalance  = [988,454,453,378,354,354,354,354,354];
+
+    const aspectDetectionF1 = {
+      food: 0.747, service: 0.837, price: 0.721, cleanliness: 0.672,
+      delivery: 0.752, ambiance: 0.699, app_experience: 0.879, general: 0.722, none: 0.235
+    };
+
+    const sentimentF1 = {
+      food: 0.725, service: 0.937, price: 0.850, cleanliness: 0.843,
+      delivery: 0.875, ambiance: 0.920, app_experience: 0.825, general: 0.892
+    };
+
+    // ── 1. Aspect Frequency Bar ──────────────────────────────────────────────
+    new Chart(document.getElementById('aspectFreqChart'), {
+      type: 'bar',
+      data: {
+        labels: aspects,
+        datasets: [{
+          data: aspects.map(a => aspectFreq[a]),
+          backgroundColor: aspects.map((_, i) => i === 0 ? GOLD : 'rgba(230,177,74,0.25)'),
+          borderColor: 'transparent',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: MUTED }, border: { display: false }, ticks: { maxTicksLimit: 5 } },
+          y: { grid: { display: false }, border: { display: false } }
+        }
+      }
+    });
+
+    // ── 2. Sentiment Donut ───────────────────────────────────────────────────
+    new Chart(document.getElementById('sentimentDonut'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Positive', 'Negative', 'Neutral'],
+        datasets: [{
+          data: [1646, 1538, 149],
+          backgroundColor: [GREEN, RED, GOLD],
+          borderColor: '#0e1118',
+          borderWidth: 3,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { padding: 14, usePointStyle: true, pointStyleWidth: 8 }
+          }
+        }
+      }
+    });
+
+    // ── 3. Flat Sizes bar ────────────────────────────────────────────────────
+    new Chart(document.getElementById('flatSizesChart'), {
+      type: 'bar',
+      data: {
+        labels: ['train_flat (raw)', 'train_flat (balanced)', 'val_flat'],
+        datasets: [{
+          data: [3333, 4043, 840],
+          backgroundColor: [BLUE, GOLD, PURPLE],
+          borderRadius: 4,
+          borderColor: 'transparent'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, border: { display: false } },
+          y: { grid: { color: MUTED }, border: { display: false }, ticks: { maxTicksLimit: 4 } }
+        }
+      }
+    });
+
+    // ── 4. Aspect Balancing rows ─────────────────────────────────────────────
+    const MAX_VAL = 988;
+    const balanceGrid = document.getElementById('balanceGrid');
+    aspects.forEach((asp, i) => {
+      const before = aspectBeforeBalance[i];
+      const after  = aspectAfterBalance[i];
+      const pctB   = (before / MAX_VAL * 100).toFixed(1);
+      const pctA   = (after  / MAX_VAL * 100).toFixed(1);
+
+      balanceGrid.innerHTML += `
+        <div class="balance-row">
+          <div class="balance-aspect">${asp}</div>
+          <div class="balance-bars">
+            <div class="balance-bar bar-before" style="width:${pctB}%"></div>
+            <div class="balance-bar bar-after"  style="width:${pctA}%"></div>
+          </div>
+          <div class="balance-nums">${before} → ${after}</div>
+        </div>
+      `;
+    });
+
+    // ── 5. Aspect Detection F1 table ─────────────────────────────────────────
+    function f1Color(v) {
+      if (v >= 0.8) return 'high';
+      if (v >= 0.65) return 'medium';
+      return 'low';
+    }
+
+    function buildF1Table(tableId, data) {
+      const table = document.getElementById(tableId);
+      table.innerHTML = `
+        <thead><tr>
+          <th>Aspect</th>
+          <th style="min-width:120px;">F1 Score</th>
+        </tr></thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+      Object.entries(data).sort((a,b) => b[1]-a[1]).forEach(([asp, f1]) => {
+        const cls = f1Color(f1);
+        tbody.innerHTML += `
+          <tr>
+            <td><span class="aspect-badge">${asp}</span></td>
+            <td>
+              <div class="f1-bar-wrap">
+                <div class="f1-bar-bg"><div class="f1-bar-fill" style="width:${(f1*100).toFixed(0)}%"></div></div>
+                <span class="f1-val ${cls}">${f1.toFixed(3)}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    buildF1Table('aspectF1Table',    aspectDetectionF1);
+    buildF1Table('sentimentF1Table', sentimentF1);
+  </script>
+</body>
+</html>
